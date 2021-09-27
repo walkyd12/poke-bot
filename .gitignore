@@ -1,0 +1,12 @@
+dominant_color.csv
+*.out
+*.log
+*.png
+*.jpg
+*.jpeg
+
+ultrasun_assets/base_imgs
+tmp
+static
+
+__pycache__
