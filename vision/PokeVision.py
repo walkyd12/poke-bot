@@ -175,9 +175,7 @@ class PokeVision(CameraHelper):
         mons_to_check = ['drifloon', 'gastly']
         temp_names = ui_to_check + mons_to_check
 
-        template_paths = []
-        template_paths.append(self._make_path(ui_to_check, 'battle'))
-        template_paths.append(self._make_path(ui_to_check, 'pname'))
+        template_paths = self._make_path(ui_to_check, 'battle') + self._make_path(ui_to_check, 'pname')
 
         img_rgb = cv2.imread(f'{self._base_path}/{img_path}')
 
