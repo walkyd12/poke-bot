@@ -17,7 +17,6 @@ except:
     from CameraHelper import CameraHelper
     from helpers import get_script_directory
 
-
 class PokeVision(CameraHelper):
     def __init__(self, poke_to_match=None, base_path='/home/pi/Projects/poke-bot',dom_color_file='dominant_color.csv', z_thresh=2.0, log_name='PokeVision', asset_folder='assets', image_size=[720, 1280]):
         CameraHelper.__init__(self)
