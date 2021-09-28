@@ -183,6 +183,7 @@ class PokeVision(CameraHelper):
 
         results = self.threaded_template_match(img_rgb, template_paths)
 
+        print(results)
         ui_results = results[0:len(ui_to_check)]
         mon_results = results[len(ui_to_check):len(mons_to_check)]
         mon_found = ''
