@@ -1,7 +1,7 @@
 import time
 
 from gamesystem.ThreeDsComm import ThreeDsComm
-from vision.PokeVision import PokeVision
+from PokeVision import PokeVision
 
 class Pokemon():
     def __init__(self, name, level, is_enemy=False, moveset=None):

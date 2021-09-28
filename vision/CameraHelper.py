@@ -1,14 +1,12 @@
 from datetime import datetime
 import cv2
-from picamera import PiCamera
 
 class CameraHelper():
-    _backup_check_dir = '/'
+    def __init__(self):
+        self._backup_check_dir = '/'
 
     def _take_still_image(self, out_filename):
-        camera = PiCamera()     
-        camera.capture(out_filename)
-        camera.close()
+        os.popen(f'{cm.get_base_path()}/take_picture.sh {out_filename}')
 
     def _read_pixel_image(self, filename):
         return cv2.imread(filename, 1)

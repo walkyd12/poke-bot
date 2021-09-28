@@ -20,6 +20,7 @@ except:
 
 class PokeVision(CameraHelper):
     def __init__(self, poke_to_match=None, base_path='/home/pi/Projects/poke-bot',dom_color_file='dominant_color.csv', z_thresh=2.0, log_name='PokeVision', asset_folder='assets', image_size=[720, 1280]):
+        CameraHelper.__init__(self)
         self._base_path = base_path
         self._logger = logging.getLogger(log_name)
 
@@ -79,33 +80,29 @@ class PokeVision(CameraHelper):
     def template_match(self, img_rgb, template_path, results=[], i=0):
         # Convert it to grayscale
         img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
-
         # Read the template
         template_rgb = cv2.imread(template_path)
-        #template = cv2.cvtColor(template_rgb, cv2.COLOR_RGB2GRAY)
-        
         template = cv2.cvtColor(template_rgb, cv2.COLOR_BGR2GRAY)
-
         # Store width and height of template in w and h
         w, h = template.shape[::-1]
 
         # Perform match operations.
         res = cv2.matchTemplate(img_gray,template,cv2.TM_CCOEFF_NORMED)
-
         # Specify a threshold
         threshold = 0.7
-
         # Store the coordinates of matched area in a numpy array
-        loc = np.where( res >= threshold)
+        loc = np.where( res >= threshold )
 
-        if len(results) > 0:
+        # If results list is long enough to store our results
+        if len(results) > i:
             results[i] = True if len(list(zip(*loc[::-1]))) > 0 else False
 
-        if True==False:
-            pts = list(zip(*loc[::-1]))
-            for p in matched_pts:
-                img_rgb = self._draw_rec(img_rgb, pts[0][0], pts[0][1], pts[0][0]+w, pts[0][1] + h)
-            cv2.imwrite(f'{self._base_path}/test_2.jpg',img_rgb)
+        # Logic to draw boxes on the picture. For debugging purposes
+        # if True==False:
+        #     pts = list(zip(*loc[::-1]))
+        #     for p in matched_pts:
+        #         img_rgb = self._draw_rec(img_rgb, pts[0][0], pts[0][1], pts[0][0]+w, pts[0][1] + h)
+        #     cv2.imwrite(f'{self._base_path}/test_2.jpg',img_rgb)
 
         return list(zip(*loc[::-1])), w, h
 
