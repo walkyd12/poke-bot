@@ -63,8 +63,8 @@ class PokeVision(CameraHelper):
         return self._crop_img(img, focus)
 
     def threaded_template_match(self, img_rgb, template_path_list):
-        threads = [None] * len(template_name_list)
-        results = [None] * len(template_name_list)
+        threads = [None] * len(template_path_list)
+        results = [None] * len(template_path_list)
         for i in range(len(threads)):
             template_path = template_path_list[i]
             th = threading.Thread(target=self.template_match, args=(img_rgb,template_path,results,i,))
