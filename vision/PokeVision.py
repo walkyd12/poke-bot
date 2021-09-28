@@ -62,11 +62,11 @@ class PokeVision(CameraHelper):
     def _focus(self, img, focus):
         return self._crop_img(img, focus)
 
-    def threaded_template_match(self, img_rgb, template_name_list, template_folder):
+    def threaded_template_match(self, img_rgb, template_path_list):
         threads = [None] * len(template_name_list)
         results = [None] * len(template_name_list)
         for i in range(len(threads)):
-            template_path = f'{self._base_path}/{self._asset_folder}/state_templates/{template_folder}/{template_name_list[i]}.jpg'
+            template_path = template_path_list[i]
             th = threading.Thread(target=self.template_match, args=(img_rgb,template_path,results,i,))
             th.start()
             threads[i] = th
@@ -75,6 +75,12 @@ class PokeVision(CameraHelper):
             threads[i].join()
 
         return results
+
+    def _make_path(self, template_name_list, template_folder):
+        path_list = []
+        for t in template_name_list:
+            path_list.append(f'{self._base_path}/{self._asset_folder}/state_templates/{template_folder}/{t}.jpg')
+        return path_list
 
     def template_match(self, img_rgb, template_path, results=[], i=0):
         # Convert it to grayscale
@@ -165,16 +171,33 @@ class PokeVision(CameraHelper):
             cv2.imwrite(f'{self._base_path}/{self._asset_folder}/state_templates/pname/{focus["name"]}.jpg',img_rgb)
 
     def is_battle_screen(self, img_path):
-        temps_to_check = ['fight','bag','run','pokemon']
+        ui_to_check = ['fight','bag','run','pokemon']
+        mons_to_check = ['drifloon', 'gastly']
+        temp_names = ui_to_check + mons_to_check
+
+        template_paths = []
+        template_paths.append(self._make_path(ui_to_check, 'battle'))
+        template_paths.append(self._make_path(ui_to_check, 'pname'))
 
         img_rgb = cv2.imread(f'{self._base_path}/{img_path}')
 
-        results = self.threaded_template_match(img_rgb, temps_to_check, 'battle')
+        results = self.threaded_template_match(img_rgb, template_paths)
+
+        ui_results = results[0:len(ui_to_check)]
+        mon_results = results[len(ui_to_check):len(mon_results)]
+        mon_found = ''
+        for i in range(len(mon_results)):
+            if mon_results[i] == True:
+                mon_found = mons_to_check[i]
         
-        if False not in results:
-            return True
+        ret = {
+            'battle_screen':{
+                'is_battle': True if False not in ui_results else False,
+                'pname': mon_found
+            }
+        }
         
-        return False
+        return ret
 
     def check_battle_mon(self, img_path, pname_list):
         img_rgb = cv2.imread(f'{self._base_path}/{img_path}')
