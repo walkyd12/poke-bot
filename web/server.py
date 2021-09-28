@@ -4,7 +4,6 @@ import numpy as np
 import os
 
 import cv2
-
 from shiny_calc import calculate_chance
 from viz import viz
 
@@ -73,6 +72,6 @@ if __name__ == '__main__':
 	print(f"Current static folder: {app.static_url_path}")
 	print(f"Current static url path: {app.root_path}/..{app.static_url_path}")
 	app.static_folder=app.root_path + "/.." + app.static_url_path
-	
+
 	app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 	app.run(host='0.0.0.0', debug=True)
