@@ -149,7 +149,10 @@ class PokeVision(CameraHelper):
         #focus_list.append({'name':'bag','x':[2400,2700],'y':[1600,2000]})
         #focus_list.append({'name':'run','x':[2700,2870],'y':[1000,1400]})
         #focus_list.append({'name':'drifloon','x':[180,250],'y':[670,900]})
-        focus_list.append({'name':'gastly','x':[127,184],'y':[750,928]})
+        #focus_list.append({'name':'gastly','x':[127,184],'y':[750,928]})
+        #focus_list.append({'name':'murkrow','x':[314,371],'y':[722,928]})
+        #focus_list.append({'name':'rotoface','x':[1700,1920],'y':[600,2100]})
+        focus_list.append({'name':'smeargle','x':[280,330],'y':[737,943]})
         # Read the main image
         img_rgb = cv2.imread(f'{self._base_path}/{img_path}')
         for focus in focus_list:
@@ -163,7 +166,10 @@ class PokeVision(CameraHelper):
         #focus_list.append({'name':'bag','x':[2400,2700],'y':[1600,2000]})
         #focus_list.append({'name':'run','x':[2700,2870],'y':[1000,1400]})
         #focus_list.append({'name':'drifloon','x':[180,250],'y':[670,900]})
-        focus_list.append({'name':'gastly','x':[127,184],'y':[750,928]})
+        #focus_list.append({'name':'gastly','x':[127,184],'y':[750,928]})
+        #focus_list.append({'name':'murkrow','x':[314,371],'y':[722,928]})
+        #focus_list.append({'name':'rotoface','x':[1700,1920],'y':[600,1950]})
+        focus_list.append({'name':'smeargle','x':[280,330],'y':[737,943]})
         # Read the main image
         img_rgb = cv2.imread(f'{self._base_path}/{img_path}')
         for focus in focus_list:
@@ -198,15 +204,6 @@ class PokeVision(CameraHelper):
         
         return ret
 
-    def check_battle_mon(self, img_path, pname_list):
-        img_rgb = cv2.imread(f'{self._base_path}/{img_path}')
-        results = self.threaded_template_match(img_rgb, pname_list, 'pname')
-
-        for i in range(len(pname_list)):
-            if results[i] == True:
-                return pname_list[i]
-        return ''
-
     def get_base_path(self):
         return self._base_path
 
@@ -217,6 +214,7 @@ if __name__=="__main__":
     #print(cm.is_battle_screen('test.jpg'))
     #pname_list = ['drifloon','gastly']
     #print(cm.check_battle_mon('test.jpg', pname_list))
+    cm.set_templates('test.jpg')
+    #cm.set_templates('test.jpg')
     print(f'time took {time.time() - s}')
-    #cm.set_templates('/home/pi/Projects/poke-bot/test.jpg')
     

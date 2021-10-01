@@ -94,13 +94,14 @@ void send_serial_message(String msg) {
 	delay(1);
 }
 
-ThreeDsServo servo_a(8, 50, 75, false);
+ThreeDsServo servo_a(7, 50, 75, false);
 ThreeDsServo servo_l(10, 50, 90, true);
 ThreeDsServo servo_r(9, 0, 30, false);
-ThreeDsServo servo_select(17, 125, 180, true);
-ThreeDsServo servo_up(12, 40, 90, true);
-ThreeDsServo servo_down(13, 90, 90, true);
-ThreeDsServo servo_d_left(11, 90, 90, true);
+ThreeDsServo servo_select(6, 145, 122, false);
+ThreeDsServo servo_up(12, 60, 95, true);
+ThreeDsServo servo_down(5, 80, 125, false);
+ThreeDsServo servo_d_left(11,80, 100, false);
+ThreeDsServo servo_d_right(13, 67, 80, true);
 
 // init on off switch pin
 const int switch_pin = 3;
@@ -113,6 +114,9 @@ void setup() {
 	servo_r.setup();
 	servo_select.setup();
 	servo_up.setup();
+	servo_down.setup();
+	servo_d_left.setup();
+	servo_d_right.setup();
 
 	pinMode(LED_BUILTIN, OUTPUT);		
 
@@ -155,13 +159,30 @@ void loop() {
 			servo_up.move_servo(servo_up._end_pos, servo_up._start_pos, 1);
 			send_serial_message("STICK_UP_SUCC");
 		} else if(msg=="STICK_DOWN") {
-			servo_up.move_servo(servo_down._start_pos, servo_down._end_pos, 1);
+			servo_down.move_servo(servo_down._start_pos, servo_down._end_pos, 1);
 			delay(1200);
-			servo_up.move_servo(servo_down._end_pos, servo_down._start_pos, 1);
+			servo_down.move_servo(servo_down._end_pos, servo_down._start_pos, 1);
 			send_serial_message("STICK_DOWN_SUCC");
+		} else if(msg=="STICK_UP_SMALL") {
+			servo_up.move_servo(servo_up._start_pos, servo_up._end_pos, 1);
+			delay(300);
+			servo_up.move_servo(servo_up._end_pos, servo_up._start_pos, 1);
+			send_serial_message("STICK_UP_SMALL_SUCC");
+		} else if(msg=="STICK_DOWN_SMALL") {
+			servo_down.move_servo(servo_down._start_pos, servo_down._end_pos, 1);
+			delay(300);
+			servo_down.move_servo(servo_down._end_pos, servo_down._start_pos, 1);
+			send_serial_message("STICK_DOWN_SMALL_SUCC");
 		} else if(msg=="PRESS_D_LEFT") {
-			servo_d_left.tap_button_servo();
+			servo_d_left.move_servo(servo_d_left._start_pos, servo_d_left._end_pos, 1.2);
+			delay(300);
+			servo_d_left.move_servo(servo_d_left._end_pos, servo_d_left._start_pos, 1.2);
 			send_serial_message("PRESS_D_LEFT_SUCC");
+		} else if(msg=="PRESS_D_RIGHT") {
+			servo_d_right.move_servo(servo_d_right._start_pos, servo_d_right._end_pos, 1.2);
+			delay(1200);
+			servo_d_right.move_servo(servo_d_right._end_pos, servo_d_right._start_pos, 1.2);
+			send_serial_message("PRESS_D_RIGHT_SUCC");
 		} else if(msg=="SOFT_RESET") {
 			soft_reset();
 			send_serial_message("SOFT_RESET_SUCC");

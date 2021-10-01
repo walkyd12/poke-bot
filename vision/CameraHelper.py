@@ -6,7 +6,7 @@ class CameraHelper():
         self._backup_check_dir = '/'
 
     def _take_still_image(self, out_filename):
-        os.popen(f'{cm.get_base_path()}/take_picture.sh {out_filename}')
+        os.popen(f'./take_picture.sh {out_filename}')
 
     def _read_pixel_image(self, filename):
         return cv2.imread(filename, 1)
