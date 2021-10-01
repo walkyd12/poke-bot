@@ -1,20 +1,31 @@
 import time
+import os
 
-from gamesystem.ThreeDsComm import ThreeDsComm
+try:
+    from gamesystem.ThreeDsComm import ThreeDsComm
+except:
+    from ThreeDsComm import ThreeDsComm
 from PokeVision import PokeVision
+from CameraHelper import CameraHelper
+from PokeVisionApi import PokeVisionApi
 
-class Pokemon():
-    def __init__(self, name, level, is_enemy=False, moveset=None):
-        self._name = name
-        self._level = level
-        blank_move = self._init_move()
-        self._moveset = {1:blank_move,2:blank_move,3:blank_move,4:blank_move} if moveset==None else moveset
-
-    def _init_move(self):
-        return {'name':'','type':'','pp_curr':'','pp_max':''}
+class UiManager():
+    def __init__(self):
+        self.last_state = 'startup'
+        self.last_press = 's_down'
+        
+    def wild_next_press(self):
+        ret = 's_up' if self.last_press == 's_down' else 's_down'
+        self.last_press = ret
+        return ret
 
 class UltraSunComm(ThreeDsComm):
-    asset_folder = 'ultrasun_assets'
+
+    def __init__(self):
+        ThreeDsComm.__init__(self)
+        self._ui = UiManager()
+        self.asset_folder = 'ultrasun_assets'
+        self._pvision_api = PokeVisionApi(domain='192.168.86.202', port=5000)
 
     def game_start(self, options={}):
         self._opening_sequence_a()
@@ -59,7 +70,36 @@ class UltraSunComm(ThreeDsComm):
         return False
 
     def _wild_shiny_hunt(self, options={}):
-        # loop until screen change (?): s_up, s_down, check screen
+        mon = ''
+        os.popen(f'./take_picture.sh test.jpg')
+        time.sleep(1)
+        print(f"Upload of test.jpg: {self._pvision_api.upload('test.jpg', out_filename='upload.png')}")
+        is_battle = False
+        in_wild = True
+        while is_battle == False:
+            if in_wild:
+                print("Walking through the grass...")
+                # loop until screen change (?): s_up, s_down, check screen
+                next_button = self._ui.wild_next_press()
+                self._send_three_ds_command('s_down',5)
+                next_button = self._ui.wild_next_press()
+                self._send_three_ds_command('s_up',5)
+            else:
+                print("No longer in the wild, hold on")
+                time.sleep(7)
+
+            os.popen(f'./take_picture.sh test.jpg')
+            time.sleep(1)
+            print(f"Upload of test.jpg: {self._pvision_api.upload('test.jpg', out_filename='upload.png')}")
+            batt_ret = self._pvision_api.check_screen(path_to_check='upload.png')
+
+            is_battle = batt_ret['is_battle']
+            in_wild = batt_ret['is_wild']
+            mon = batt_ret['pname']
+        
+        last_state = 'battle'
+        print(f"Ran into {mon} in the wild!")
+
         # assume: battle screen, tap a, read text, check if correct mon to catch
         # if is mon, format Pokemon obj for cur mon using screen text
         # Execute move # (?)
@@ -75,3 +115,7 @@ class UltraSunComm(ThreeDsComm):
             return False
         self._logger.critical("Pokémon flagged as shiny!")
         return True
+
+if __name__=="__main__":
+    usc = UltraSunComm()
+    usc._wild_shiny_hunt()

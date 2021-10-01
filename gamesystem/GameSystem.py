@@ -2,10 +2,15 @@ import os
 import csv
 import time
 
-from gamesystem.SerialManager import SerialManager
+try:
+    from gamesystem.SerialManager import SerialManager
+except:
+    from SerialManager import SerialManager
 
 class GameSystem(SerialManager):
-    asset_folder = 'assets'
+    def __init__(self, logger_name='GameSystem'):
+        SerialManager.__init__(self, logger_name=logger_name)
+        self.asset_folder = 'assets'
 
     def __command_lookup(self, short_cmd):
         return self.COMMANDS.get(short_cmd, '')
@@ -81,5 +86,5 @@ class GameSystem(SerialManager):
                 to = 5.0
             elif cmd=='':
                 cmd = 'a'
-            time.sleep(2)
+            time.sleep(5)
             msg_succ = self._send_game_system_command(cmd, to)
