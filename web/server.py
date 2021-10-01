@@ -41,35 +41,30 @@ class PokeWeb():
 		"""This will be called after every upload, but we can ignore it"""
 		return "Success"
 
-	@app.route("/upload", methods=["POST"])
-	def upload():
+	@app.route("/upload/<path_to_upload>", methods=["POST"])
+	def upload(path_to_upload):
 		io_file = request.files["media"]
 		contents = io_file.read()
 		if contents == b'':
-			return {'statusCode':405}
+			return { 'statusCode': 405 }
 		jpg_as_np = np.frombuffer(contents, dtype=np.uint8)
 		img = cv2.imdecode(jpg_as_np, flags=1)
-		cv2.imwrite("upload.png", img)
+		cv2.imwrite(f'{app.static_folder}/{path_to_upload}', img)
 
-		#cm = pv.PokeVision(base_path='/home/waklky/poke-bot',asset_folder='ultrasun_assets')
+		return { 'statusCode': 200 }
 
-		return { 'statusCode':200 }
-
-	@app.route("/screen-check", methods=["GET"])
-	def screen_check():
+	@app.route("/screen-check/<path_to_check>", methods=["GET"])
+	def screen_check_w_path(path_to_check):
 		cm = pv.PokeVision(base_path='/home/waklky/poke-bot',asset_folder='ultrasun_assets')
 
-		res = {}
-		res['battle_screen'] = {}
-		res['battle_screen']['is_battle'] = cm.is_battle_screen("upload.png")
-		res['battle_screen']['pname'] = cm.check_battle_mon("upload.png", ['drifloon', 'gastly'])
+		res = cm.is_battle_screen(f'{app.static_folder}/{path_to_check}')
 
-		return { 'statusCode':200, 'response': res}
+		return { 'statusCode': 200, 'response': res }
 
 	# No caching at all for API endpoints.
 	@app.after_request
 	def add_header(response):
-	    # response.cache_control.no_store = True
+	    response.cache_control.no_store = True
 	    if 'Cache-Control' not in response.headers:
 	        response.headers['Cache-Control'] = 'no-store'
 	    return response

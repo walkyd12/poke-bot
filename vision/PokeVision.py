@@ -62,12 +62,13 @@ class PokeVision(CameraHelper):
     def _focus(self, img, focus):
         return self._crop_img(img, focus)
 
-    def threaded_template_match(self, img_rgb, template_path_list):
-        threads = [None] * len(template_path_list)
-        results = [None] * len(template_path_list)
+    def threaded_template_match(self, img_rgb, template_objs):
+        threads = [None] * len(template_objs)
+        results = [None] * len(template_objs)
         for i in range(len(threads)):
-            template_path = template_path_list[i]
-            th = threading.Thread(target=self.template_match, args=(img_rgb,template_path,results,i,))
+            template_path = template_objs[i]['path']
+            conf = template_objs[i]['conf']
+            th = threading.Thread(target=self.template_match, args=(img_rgb,template_path,conf,results,i,))
             th.start()
             threads[i] = th
 
@@ -82,14 +83,23 @@ class PokeVision(CameraHelper):
             path_list.append(f'{self._base_path}/{self._asset_folder}/state_templates/{template_folder}/{t}.jpg')
         return path_list
 
-    def template_match(self, img_rgb, template_path, results=[], i=0):
-        # Convert it to grayscale
-        img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
-        # Read the template
-        template_rgb = cv2.imread(template_path)
-        template = cv2.cvtColor(template_rgb, cv2.COLOR_BGR2GRAY)
-        # Store width and height of template in w and h
-        w, h = template.shape[::-1]
+    def template_match(self, img_rgb, template_path, confidence_thresh=0.7, results=[], i=0):
+        try:
+            # Convert it to grayscale
+            img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
+        except Exception as e:
+            print("Failed to transform base image to gray")
+            return [], 0, 0
+
+        try:
+            # Read the template
+            template_rgb = cv2.imread(template_path)
+            template = cv2.cvtColor(template_rgb, cv2.COLOR_BGR2GRAY)
+            # Store width and height of template in w and h
+            w, h = template.shape[::-1]
+        except Exception as e:
+            print(f"Failed to transform template to gray {template_path}")
+            return [], 0, 0
 
         # Perform match operations.
         res = cv2.matchTemplate(img_gray,template,cv2.TM_CCOEFF_NORMED)
@@ -172,27 +182,48 @@ class PokeVision(CameraHelper):
 
     def is_battle_screen(self, img_path):
         ui_to_check = ['fight','bag','run','pokemon']
-        mons_to_check = ['drifloon', 'gastly']
-        temp_names = ui_to_check + mons_to_check
+        mons_to_check = ['drifloon', 'gastly', 'murkrow']
+        wild_check = ['rotoface']
+        temp_names = ui_to_check + mons_to_check + wild_check
 
-        template_paths = self._make_path(ui_to_check, 'battle') + self._make_path(mons_to_check, 'pname')
+        template_paths = self._make_path(ui_to_check, 'battle') + self._make_path(mons_to_check, 'pname') + self._make_path(wild_check, 'wild')
 
-        img_rgb = cv2.imread(f'{self._base_path}/{img_path}')
+        try:
+            img_rgb = cv2.imread(img_path)
+            #if img_rgb == None:
+            #    self._logger.error(f'Unable to read image from {img_path}')
+            #    return {}
+        except:
+            self._logger.error(f'Unable to read image from {img_path}')
+            return {}
 
-        results = self.threaded_template_match(img_rgb, template_paths)
+        template_objs = []
+        for i in range(len(template_paths)):
+            conf = 0.6 if temp_names[i] in ui_to_check else 0.7
+            name = temp_names[i]
+            path = template_paths[i]
+            template_objs.append({'conf':conf,'name':name,'path':path})
 
-        print(results)
-        ui_results = results[0:len(ui_to_check)]
-        mon_results = results[len(ui_to_check):len(mons_to_check)]
+        results = self.threaded_template_match(img_rgb, template_objs)
+
+        ui_results = []
+        in_wild = False
         mon_found = ''
-        for i in range(len(mon_results)):
-            if mon_results[i] == True:
-                mon_found = mons_to_check[i]
+        for i in range(0, len(temp_names)):
+            if temp_names[i] in ui_to_check:
+                ui_results.append(results[i])
+            elif temp_names[i] in mons_to_check:
+                if results[i] == True:
+                    mon_found = temp_names[i]
+            elif temp_names[i] in wild_check:
+                if results[i] == True:
+                    in_wild = True
         
         ret = {
             'battle_screen':{
-                'is_battle': True if False not in ui_results else False,
-                'pname': mon_found
+                'is_battle': True if (False not in ui_results) and (None not in ui_results) else False,
+                'pname': mon_found,
+                'is_wild':in_wild
             }
         }
         
